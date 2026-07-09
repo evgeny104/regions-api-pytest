@@ -45,6 +45,7 @@ desktop.ini
 
 # API config — contains endpoint URL, set manually before running
 src/config/url.py
+!src/config/.gitkeep
 
 # Distribution / packaging
 dist/
