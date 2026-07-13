@@ -3,7 +3,7 @@ import allure
 import requests as req_lib
 from main import Region
 from src.config.url import BASE_URL
-from src.models.region import RegionResponse, RegionErrorResponse
+from src.models.Pydantic.region import RegionResponse, RegionErrorResponse
 
 @pytest.fixture
 def region_response(request):
@@ -25,9 +25,18 @@ def region_response(request):
     for key, value in params.items():
         allure.dynamic.parameter(key, value)
 
-    with allure.step(f"Send GET request with params: q={q}, country_code={country_code}, page_size={page_size},"
+    with allure.step(f"Send GET request with params:"
+                     f" q={q},"
+                     f" country_code={country_code},"
+                     f" page_size={page_size},"
                      f" page={page}"):
         status_code, data = region.get_data()
+
+    with allure.step("Validate response body schema"):
+        if "error" in data:
+            validated = RegionErrorResponse(**data)
+        else:
+            validated = RegionResponse(**data)
 
     with allure.step("Attach API response to the report"):
         allure.attach(
@@ -36,4 +45,4 @@ def region_response(request):
             attachment_type=allure.attachment_type.TEXT
         )
 
-    return status_code, data
+    return status_code, validated.model_dump()
