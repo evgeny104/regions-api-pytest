@@ -7,15 +7,7 @@ from src.models.Pydantic.region import RegionResponse, RegionErrorResponse
 
 @pytest.fixture
 def region_response(request):
-    q, country_code, page_size, page = request.param
-
-    region = Region(
-        url=BASE_URL,
-        q=q,
-        country_code=country_code,
-        page_size=page_size,
-        page=page
-    )
+    region = Region(url=BASE_URL, **request.param)
 
     params = region.get_params()
     prepared = req_lib.Request('GET', BASE_URL.rstrip('?'), params=params).prepare()
@@ -25,11 +17,7 @@ def region_response(request):
     for key, value in params.items():
         allure.dynamic.parameter(key, value)
 
-    with allure.step(f"Send GET request with params:"
-                     f" q={q},"
-                     f" country_code={country_code},"
-                     f" page_size={page_size},"
-                     f" page={page}"):
+    with allure.step(f"Send GET request with params: {request.param}"):
         status_code, data = region.get_data()
 
     with allure.step("Validate response body schema"):
