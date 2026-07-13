@@ -35,8 +35,8 @@ class TestRegionsQ:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param(("но", None, None, None), id="len=2 (boundary invalid)"),
-            pytest.param(("н", None, None, None), id="len=1 (invalid)"),
+            pytest.param(("мо", None, None, None), id="len=2 (boundary invalid)"),
+            pytest.param(("м", None, None, None), id="len=1 (invalid)"),
             pytest.param(("", None, None, None), id="len=0 (empty string)"),
             pytest.param(("   ", None, None, None), id="only spaces"),
         ],
@@ -52,10 +52,10 @@ class TestRegionsQ:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param(("нов", "us", None, None), id="q + country_code"),
-            pytest.param(("нов", None, 1, None), id="q + page_size"),
-            pytest.param(("нов", None, None, 2), id="q + page"),
-            pytest.param(("нов", "us", 1, 2), id="q + all params"),
+            pytest.param(("нов", "ru", None, None), id="q + country_code"),
+            pytest.param(("Нов", None, 1, None), id="q + page_size"),
+            pytest.param(("нОв", None, None, 2), id="q + page"),
+            pytest.param(("ноВ", "us", 1, 2), id="q + all params"),
         ],
         indirect=True,
     )

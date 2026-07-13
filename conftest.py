@@ -3,6 +3,7 @@ import allure
 import requests as req_lib
 from main import Region
 from src.config.url import BASE_URL
+from src.models.region import RegionResponse, RegionErrorResponse
 
 @pytest.fixture
 def region_response(request):
