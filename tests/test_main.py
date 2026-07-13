@@ -7,10 +7,10 @@ class TestRegionsQ:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param(("Новосибирск", None, None, None), id="mixed case, full word"),
-            pytest.param(("нов", None, None, None), id="lower case, fuzzy, len=3 (valid boundary)"),
-            pytest.param(("НОВ", None, None, None), id="upper case, fuzzy"),
-            pytest.param(("ново", None, None, None), id="len=4 (just above boundary)"),
+            pytest.param({"q": "Новосибирск"}, id="mixed case, full word"),
+            pytest.param({"q": "нов"},         id="lower case, fuzzy, len=3 (valid boundary)"),
+            pytest.param({"q": "НОВ"},         id="upper case, fuzzy"),
+            pytest.param({"q": "ново"},        id="len=4 (just above boundary)"),
         ],
         indirect=True,
     )
@@ -35,10 +35,10 @@ class TestRegionsQ:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param(("мо", None, None, None), id="len=2 (boundary invalid)"),
-            pytest.param(("м", None, None, None), id="len=1 (invalid)"),
-            pytest.param(("", None, None, None), id="len=0 (empty string)"),
-            pytest.param(("   ", None, None, None), id="only spaces"),
+            pytest.param({"q": "мо"},  id="len=2 (boundary invalid)"),
+            pytest.param({"q": "м"},   id="len=1 (invalid)"),
+            pytest.param({"q": ""},    id="len=0 (empty string)"),
+            pytest.param({"q": "   "}, id="only spaces"),
         ],
         indirect=True,
     )
@@ -52,10 +52,10 @@ class TestRegionsQ:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param(("нов", "ru", None, None), id="q + country_code"),
-            pytest.param(("Нов", None, 1, None), id="q + page_size"),
-            pytest.param(("нОв", None, None, 2), id="q + page"),
-            pytest.param(("ноВ", "us", 1, 2), id="q + all params"),
+            pytest.param({"q": "нов", "country_code": "ru"},                              id="q + country_code"),
+            pytest.param({"q": "Нов", "page_size": 1},                                    id="q + page_size"),
+            pytest.param({"q": "нОв", "page": 2},                                         id="q + page"),
+            pytest.param({"q": "ноВ", "country_code": "us", "page": 2, "page_size": 1},   id="q + all params"),
         ],
         indirect=True,
     )
@@ -77,9 +77,9 @@ class TestRegionsQ:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param(("Новосибирск", "us", None, None), id="q + country_code"),
-            pytest.param(("Новосибирск", None, None, 2), id="q + page"),
-            pytest.param(("Новосибирск", "us", None, 2), id="q + country_code + page"),
+            pytest.param({"q": "Новосибирск", "country_code": "us"},              id="q + country_code"),
+            pytest.param({"q": "Новосибирск", "page": 2},                         id="q + page"),
+            pytest.param({"q": "Новосибирск", "country_code": "us", "page": 2},   id="q + country_code + page"),
         ],
         indirect=True,
     )
@@ -100,10 +100,10 @@ class TestRegionsCountryCode:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, "ru", None, None), id="country_code=ru"),
-            pytest.param((None, "kg", None, None), id="country_code=kg"),
-            pytest.param((None, "kz", None, None), id="country_code=kz"),
-            pytest.param((None, "cz", None, None), id="country_code=cz"),
+            pytest.param({"country_code": "ru"}, id="country_code=ru"),
+            pytest.param({"country_code": "kg"}, id="country_code=kg"),
+            pytest.param({"country_code": "kz"}, id="country_code=kz"),
+            pytest.param({"country_code": "cz"}, id="country_code=cz"),
         ],
         indirect=True,
     )
@@ -124,8 +124,7 @@ class TestRegionsCountryCode:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, None, None), id="country_code not provided"
-                                                      " (default: all countries)"),
+            pytest.param({}, id="country_code not provided (default: all countries)"),
         ],
         indirect=True,
     )
@@ -140,9 +139,9 @@ class TestRegionsCountryCode:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, "us", None, None), id="country_code=us (undocumented)"),
-            pytest.param((None, "de", None, None), id="country_code=de (undocumented)"),
-            pytest.param((None, "xx", None, None), id="country_code=xx (non-existent)"),
+            pytest.param({"country_code": "us"}, id="country_code=us (undocumented)"),
+            pytest.param({"country_code": "de"}, id="country_code=de (undocumented)"),
+            pytest.param({"country_code": "xx"}, id="country_code=xx (non-existent)"),
         ],
         indirect=True,
     )
@@ -155,7 +154,7 @@ class TestRegionsCountryCode:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, "", None, None), id="country_code='' (empty string)"),
+            pytest.param({"country_code": ""}, id="country_code='' (empty string)"),
         ],
         indirect=True,
     )
@@ -168,8 +167,8 @@ class TestRegionsCountryCode:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, "RU", None, None), id="country_code='RU' (uppercase)"),
-            pytest.param((None, "Ru", None, None), id="country_code='Ru' (mixed case)"),
+            pytest.param({"country_code": "RU"}, id="country_code='RU' (uppercase)"),
+            pytest.param({"country_code": "Ru"}, id="country_code='Ru' (mixed case)"),
         ],
         indirect=True,
     )
@@ -185,7 +184,7 @@ class TestRegionsPage:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, None, 1), id="page=1 (min valid boundary)"),
+            pytest.param({"page": 1}, id="page=1 (min valid boundary)"),
         ],
         indirect=True,
     )
@@ -201,7 +200,7 @@ class TestRegionsPage:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, None, None), id="page not provided (default=1)"),
+            pytest.param({}, id="page not provided (default=1)"),
         ],
         indirect=True,
     )
@@ -216,8 +215,8 @@ class TestRegionsPage:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, None, 2), id="page=2 (typical valid)"),
-            pytest.param((None, None, None, 3), id="page=3 (typical valid)"),
+            pytest.param({"page": 2}, id="page=2 (typical valid)"),
+            pytest.param({"page": 3}, id="page=3 (typical valid)"),
         ],
         indirect=True,
     )
@@ -232,8 +231,8 @@ class TestRegionsPage:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, None, 0), id="page=0 (invalid boundary, below min)"),
-            pytest.param((None, None, None, -1), id="page=-1 (negative)"),
+            pytest.param({"page": 0},  id="page=0 (invalid boundary, below min)"),
+            pytest.param({"page": -1}, id="page=-1 (negative)"),
         ],
         indirect=True,
     )
@@ -246,8 +245,8 @@ class TestRegionsPage:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, None, "abc"), id="page='abc' (non-numeric)"),
-            pytest.param((None, None, None, "1.5"), id="page='1.5' (float string)"),
+            pytest.param({"page": "abc"}, id="page='abc' (non-numeric)"),
+            pytest.param({"page": "1.5"}, id="page='1.5' (float string)"),
         ],
         indirect=True,
     )
@@ -264,9 +263,9 @@ class TestRegionsPageSize:
     @pytest.mark.parametrize(
         "region_response, expected_size",
         [
-            pytest.param((None, None, 5, None), 5, id="page_size=5"),
-            pytest.param((None, None, 10, None), 10, id="page_size=10"),
-            pytest.param((None, None, 15, None), 15, id="page_size=15"),
+            pytest.param({"page_size": 5},  5,  id="page_size=5"),
+            pytest.param({"page_size": 10}, 10, id="page_size=10"),
+            pytest.param({"page_size": 15}, 15, id="page_size=15"),
         ],
         indirect=["region_response"],
     )
@@ -280,7 +279,7 @@ class TestRegionsPageSize:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, None, None), id="page_size not provided (default=15)"),
+            pytest.param({}, id="page_size not provided (default=15)"),
         ],
         indirect=True,
     )
@@ -294,9 +293,9 @@ class TestRegionsPageSize:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, 1, None), id="page_size=1 (below allowed set)"),
-            pytest.param((None, None, 20, None), id="page_size=20 (above allowed set)"),
-            pytest.param((None, None, 100, None), id="page_size=100 (far above allowed set)"),
+            pytest.param({"page_size": 1},   id="page_size=1 (below allowed set)"),
+            pytest.param({"page_size": 20},  id="page_size=20 (above allowed set)"),
+            pytest.param({"page_size": 100}, id="page_size=100 (far above allowed set)"),
         ],
         indirect=True,
     )
@@ -309,9 +308,9 @@ class TestRegionsPageSize:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, 0, None), id="page_size=0 (invalid boundary)"),
-            pytest.param((None, None, -1, None), id="page_size=-1 (negative)"),
-            pytest.param((None, None, -5, None), id="page_size=-5 (negative)"),
+            pytest.param({"page_size": 0},  id="page_size=0 (invalid boundary)"),
+            pytest.param({"page_size": -1}, id="page_size=-1 (negative)"),
+            pytest.param({"page_size": -5}, id="page_size=-5 (negative)"),
         ],
         indirect=True,
     )
@@ -324,8 +323,8 @@ class TestRegionsPageSize:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param((None, None, "abc", None), id="page_size='abc' (non-numeric)"),
-            pytest.param((None, None, "5.5", None), id="page_size='5.5' (float string)"),
+            pytest.param({"page_size": "abc"}, id="page_size='abc' (non-numeric)"),
+            pytest.param({"page_size": "5.5"}, id="page_size='5.5' (float string)"),
         ],
         indirect=True,
     )
