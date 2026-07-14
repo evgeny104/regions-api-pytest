@@ -1,6 +1,13 @@
 import requests
+from requests.exceptions import Timeout, ConnectionError, SSLError, RequestException
 
 DEFAULT_TIMEOUT = 15
+
+NETWORK_ERROR_IDS = {
+    Timeout: "network_timeout",
+    SSLError: "network_ssl_error",
+    ConnectionError: "network_connection_error",
+}
 
 
 class Region:
@@ -10,30 +17,35 @@ class Region:
         self.country_code = country_code
         self.page = page
         self.page_size = page_size
-        self.data = None
-        self.status_code = None
 
     def get_params(self):
-        params = {}
-        if self.q is not None:
-            params['q'] = self.q
-        if self.country_code is not None:
-            params['country_code'] = self.country_code
-        if self.page is not None:
-            params['page'] = self.page
-        if self.page_size is not None:
-            params['page_size'] = self.page_size
-        return params
+        return {
+            k: v for k, v in (
+                ("q", self.q),
+                ("country_code", self.country_code),
+                ("page", self.page),
+                ("page_size", self.page_size),
+            ) if v is not None
+        }
 
     def get_data(self, timeout=DEFAULT_TIMEOUT):
-        response = requests.get(self.url, params=self.get_params(), timeout=timeout)
-        self.status_code = response.status_code
         try:
-            self.data = response.json()
+            response = requests.get(self.url, params=self.get_params(), timeout=timeout)
+        except RequestException as exc:
+            error_id = next(
+                (eid for exc_type, eid in NETWORK_ERROR_IDS.items() if isinstance(exc, exc_type)),
+                "network_error",
+            )
+            return None, {"error": {"id": error_id, "message": str(exc)[:500]}}
+
+        try:
+            data = response.json()
         except ValueError:
-            self.data = {"error": {"id": "server_invalid_json",
-                                   "message": response.text[:500]}}
-        return self.status_code, self.data
+            data = {"error": {"id": "server_invalid_json",
+                              "message": response.text[:500]}}
+        return response.status_code, data
 
     def __repr__(self):
-        return f"Region(status_code={self.status_code}, data={self.data})"
+        return (f"Region(url={self.url!r}, q={self.q!r}, "
+                f"country_code={self.country_code!r}, "
+                f"page={self.page!r}, page_size={self.page_size!r})")
