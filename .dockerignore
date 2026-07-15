@@ -1,0 +1,45 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+**/__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.tox
+
+# Virtual envs
+.venv
+venv
+env
+ENV
+
+# IDE / OS
+.idea
+.vscode
+*.swp
+.DS_Store
+Thumbs.db
+
+# Secrets & local configs (regenerated inside image via ARG BASE_URL)
+.env
+.env.*
+src/config/url.py
+
+# Reports & docs not needed at runtime
+allure-results
+allure-report
+htmlcov
+.coverage
+*.log
+*.pdf
+README.md
+
+# Docker meta
+Dockerfile
+.dockerignore
