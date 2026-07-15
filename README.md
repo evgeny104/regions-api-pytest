@@ -57,6 +57,15 @@ pytest -v --alluredir=allure-results                                        # Ru
 allure serve allure-results                                                 # Open the report in the browser
 ```
 
+## Docker
+
+`BASE_URL` is passed at build time via `--build-arg` (request the actual value from the project owner).
+
+```bash
+docker build --build-arg BASE_URL=<BASE_URL> -t regions-tests .
+docker run --rm -v "${PWD}/allure-results:/app/allure-results" regions-tests
+```
+
 ## Project layout
 
 ```
