@@ -18,8 +18,7 @@ COPY tests ./tests
 ARG BASE_URL
 RUN test -n "$BASE_URL" || (echo "ERROR: --build-arg BASE_URL is required" && exit 1) \
     && mkdir -p src/config \
-    && printf "BASE_URL = '%s'\n" "$BASE_URL" > src/config/url.py \
-    && touch src/config/__init__.py src/__init__.py
+    && printf "BASE_URL = '%s'\n" "$BASE_URL" > src/config/url.py
 
 RUN groupadd --gid 1000 tester \
     && useradd  --uid 1000 --gid tester --create-home tester \

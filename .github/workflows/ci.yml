@@ -30,7 +30,6 @@ jobs:
           BASE_URL: ${{ secrets.BASE_URL }}
         run: |
           mkdir -p src/config
-          touch src/__init__.py src/config/__init__.py
           printf "BASE_URL = '%s'\n" "$BASE_URL" > src/config/url.py
 
       - name: Run pytest
