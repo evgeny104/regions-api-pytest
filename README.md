@@ -71,11 +71,11 @@ docker run --rm -v "${PWD}/allure-results:/app/allure-results" regions-tests
 ```
 .
 ├── main.py                       # Region wrapper over requests + network error classification
-├── conftest.py                   # region_response / region_response_pair fixtures, Allure grouping
 ├── pytest.ini                    # default pytest options (-v, --strict-markers, --tb=short, testpaths=tests)
 ├── src/
 │   ├── config/url.py             # BASE_URL (create locally)
 │   └── models/Pydantic/region.py # Pydantic response models (RegionResponse, RegionErrorResponse)
 └── tests/
+    ├── conftest.py               # region_response / region_response_pair fixtures, Allure grouping
     └── test_main.py              # tests grouped by parameter under test
 ```
