@@ -3,7 +3,7 @@ import allure
 import requests as req_lib
 from main import Region
 from src.config.url import BASE_URL
-from src.models.Pydantic.region import RegionResponse, RegionErrorResponse
+from models.Pydantic.region import RegionResponse, RegionErrorResponse
 
 
 def _do_request(param, label=""):
