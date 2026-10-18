@@ -1,82 +1,90 @@
-# Regions API tests
+# Тесты Regions API
 
-Automated tests for the public 2GIS Regions API (`https://host/1.0/regions`). Cover the `q`, `country_code`, `page`, `page_size` parameters, their combinations, and pagination behavior.
+Автотесты 2GIS Regions API (`q`, `country_code`, `page`, `page_size`, комбинации, пагинация). Стиль — Okken: pytest + pydantic + allure, factory-фикстуры, маркеры, конфиг в `pyproject.toml`.
 
-## Stack
-
-- Python 3.10+
-- pytest — test runner
-- requests — HTTP client
-- pydantic — response schema validation
-- allure-pytest — reporting
-
-## Setup
+## Установка
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate           # Windows
-# source .venv/bin/activate      # Linux/macOS
+.venv\Scripts\activate                   # Windows
+# source .venv/bin/activate               # Linux/macOS
 pip install -r requirements.txt
 ```
 
-## Configuration
-
-`src/config/url.py` is not stored in the repository (see `.gitignore`). Create it manually:
+Создай `src/config/url.py` (gitignored):
 
 ```python
-# src/config/url.py
 BASE_URL = 'https://host/1.0/regions'
 ```
 
-## Running tests
+## Запуск
+
+Дефолты в `pyproject.toml` (`-v`, `--strict-markers`, `testpaths=tests`, `pythonpath=.`).
 
 ```bash
-
-pytest                                    # default run (flags -v/--tb=short set in pytest.ini)
-pytest --alluredir=allure-results         # produce Allure results
-pytest -k TestRegionsQ                    # single class
-pytest -k "page_size"                     # filter by test id substring
+pytest                                   # все тесты
+pytest tests/func                        # только API-тесты
+pytest tests/unit                        # только unit (без сети)
+pytest -k TestRegionsQ                   # один класс
+pytest -m smoke                          # по маркеру
+pytest --alluredir=allure-results        # с allure
 ```
 
-## Viewing the Allure report
+### Маркеры
 
-Requires the [Allure CLI](https://allurereport.org/docs/install/).
+`smoke`, `negative`, `boundary`, `combined`, `pagination` — зарегистрированы в `pyproject.toml`.
 
 ```bash
-allure serve allure-results                          # temporary local server
+pytest -m "negative and boundary"        # невалидные граничные значения
+pytest -m "not negative"                 # всё, кроме негатива
+```
+
+### Windows: кириллица в выводе
+
+```powershell
+$env:PYTHONIOENCODING = "utf-8"
+chcp 65001
+```
+
+## Allure
+
+```bash
+pytest --alluredir=allure-results
+allure serve allure-results              # временный сервер
+# или статическая сборка:
 allure generate allure-results -o allure-report --clean
 allure open allure-report
 ```
 
-### Windows PowerShell example
-
-```powershell
-Remove-Item allure-results\* -Recurse -Force                                # Let's clear the reports
-pytest -k TestRegionsPage --alluredir=allure-results                        # We are launching only TestRegionsPage
-pytest --alluredir=allure-results                                           # Run all tests + report allure
-allure serve allure-results                                                 # Open the report in the browser
-```
+В отчёте: suites по классам (feature — из docstring класса), attachment `Response body` на каждом запросе, allure-параметры `URL`/`q`/`page`.
 
 ## Docker
-
-`BASE_URL` is passed at build time via `--build-arg` (request the actual value from the project owner).
 
 ```bash
 docker build --build-arg BASE_URL=<BASE_URL> -t regions-tests .
 docker run --rm -v "${PWD}/allure-results:/app/allure-results" regions-tests
 ```
 
-## Project layout
+## Структура
 
 ```
 .
-├── main.py                       # Region wrapper over requests + network error classification
-├── pytest.ini                    # default pytest options (-v, --strict-markers, --tb=short, testpaths=tests)
+├── pyproject.toml                       # конфиг pytest
 ├── src/
-│   └── config/url.py             # BASE_URL (create locally)
-├── models/
-│   └── Pydantic/region.py        # Pydantic response models (RegionResponse, RegionErrorResponse)
+│   ├── api/region_client.py             # обёртка над requests + классификация сетевых ошибок
+│   └── config/url.py                    # BASE_URL (gitignored)
+├── models/Pydantic/region.py            # Pydantic-схемы ответа
 └── tests/
-    ├── conftest.py               # region_response / region_response_pair fixtures, Allure grouping
-    └── test_main.py              # tests grouped by parameter under test
+    ├── func/                            # API-тесты, по файлу на параметр
+    │   ├── conftest.py                  # base_url, regions_request (factory), allure grouping
+    │   └── test_*.py
+    └── unit/
+        └── test_region_client.py        # monkeypatch, без сети
 ```
+
+## Соглашения
+
+- Класс = параметр. Первая строка docstring класса → allure feature-label.
+- `pytest.param(..., id="...")` с читаемыми русскими id (ASCII-escaping отключён).
+- Фикстура `regions_request` возвращает `(status_code, data_dict)` — `data` это `model_dump()`, доступ через `data["items"]`.
+- Негативные тесты проверяют конкретные `error.id` / `error.message`, где контракт известен.

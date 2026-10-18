@@ -43,6 +43,9 @@ desktop.ini
 *.sqlite
 *.sqlite3
 
+# Claude Code — локальный allowlist команд
+.claude/settings.local.json
+
 # API config — contains endpoint URL, set manually before running
 src/config/url.py
 !src/config/.gitkeep
