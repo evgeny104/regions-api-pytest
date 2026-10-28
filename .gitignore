@@ -59,3 +59,4 @@ build/
 # Allure / coverage reports (generated)
 allure-results/
 allure-report/
+tz.pdf

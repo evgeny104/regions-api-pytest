@@ -39,3 +39,54 @@ class TestRegionsPagination:
         ids_b = {item["id"] for item in data_b["items"]}
         overlap = ids_a & ids_b
         assert not overlap, f"последовательные страницы вернули пересекающиеся id: {overlap}"
+
+    @pytest.mark.pagination
+    @pytest.mark.boundary
+    @pytest.mark.parametrize(
+        "page_size",
+        [
+            pytest.param(
+                5,
+                id="page_size=5",
+                marks=pytest.mark.xfail(
+                    reason="BUG-001: последняя страница возвращает 5 элементов вместо остатка 2 (дубликаты из предыдущих страниц)",
+                    strict=True,
+                ),
+            ),
+            pytest.param(
+                10,
+                id="page_size=10",
+                marks=pytest.mark.xfail(
+                    reason="BUG-001: последняя страница возвращает 3 элемента вместо остатка 2",
+                    strict=True,
+                ),
+            ),
+            pytest.param(15, id="page_size=15"),
+        ],
+    )
+    def test_last_page_returns_remainder(self, regions_request, page_size):
+        """Последняя страница возвращает остаток `0 < len(items) <= page_size`; total стабилен.
+
+        Защита от off-by-one: страница `ceil(total/page_size)` должна содержать
+        ровно `total - (last_page - 1) * page_size` элементов.
+        """
+        _, data_first = regions_request({"page_size": page_size, "page": 1}, label="[page=1]")
+        assert "error" not in data_first
+        total = data_first["total"]
+        assert total > 0, "ожидали непустой total для расчёта последней страницы"
+
+        last_page = (total + page_size - 1) // page_size
+        expected_last_count = total - (last_page - 1) * page_size
+
+        _, data_last = regions_request(
+            {"page_size": page_size, "page": last_page}, label=f"[page={last_page}]"
+        )
+        assert "error" not in data_last
+        assert data_last["total"] == total, (
+            f"total должен быть стабилен между страницами: {total} vs {data_last['total']}"
+        )
+        assert len(data_last["items"]) == expected_last_count, (
+            f"на последней странице ожидали {expected_last_count} элементов "
+            f"(total={total}, page_size={page_size}, last_page={last_page}), "
+            f"получили {len(data_last['items'])}"
+        )
