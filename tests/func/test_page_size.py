@@ -4,11 +4,28 @@ import pytest
 class TestRegionsPageSize:
     """page_size — элементов на страницу. Допустимые значения: 5, 10, 15. По умолчанию: 15."""
 
-    @pytest.mark.smoke
+    def test_total_is_stable_across_page_sizes_and_country_filter(self, regions_request):
+        """total — общее число регионов и не зависит от page_size или country_code."""
+        cases = [
+            ("page_size=5", {"page_size": 5}),
+            ("page_size=10", {"page_size": 10}),
+            ("page_size=15", {"page_size": 15}),
+            ("country_code=ru", {"country_code": "ru", "page_size": 5}),
+        ]
+
+        totals = {}
+        for label, params in cases:
+            status_code, data = regions_request(params, label=f"[{label}]")
+            assert status_code == 200
+            assert "error" not in data
+            totals[label] = data["total"]
+
+        assert len(set(totals.values())) == 1, f"total должен быть одинаковым во всех запросах: {totals}"
+
     @pytest.mark.parametrize(
         "region_response, expected_size",
         [
-            pytest.param({"page_size": 5},  5,  id="page_size=5"),
+            pytest.param({"page_size": 5},  5,  id="page_size=5", marks=pytest.mark.smoke),
             pytest.param({"page_size": 10}, 10, id="page_size=10"),
             pytest.param({"page_size": 15}, 15, id="page_size=15"),
         ],
@@ -26,7 +43,14 @@ class TestRegionsPageSize:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param({}, id="page_size не передан (default=15)"),
+            pytest.param(
+                {},
+                id="page_size не передан (default=15)",
+                marks=pytest.mark.xfail(
+                    reason="BUG-003: page_size по умолчанию возвращает 10 элементов вместо 15",
+                    strict=True,
+                ),
+            ),
         ],
         indirect=True,
     )

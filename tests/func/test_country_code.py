@@ -8,9 +8,21 @@ class TestRegionsCountryCode:
     @pytest.mark.parametrize(
         "region_response, expected_country",
         [
-            pytest.param({"country_code": "ru"}, "ru", id="country_code=ru"),
-            pytest.param({"country_code": "kg"}, "kg", id="country_code=kg"),
-            pytest.param({"country_code": "kz"}, "kz", id="country_code=kz"),
+            pytest.param({"country_code": "ru"}, "ru", id="country_code=ru", marks=pytest.mark.smoke),
+            pytest.param(
+                {"country_code": "kg"}, "kg", id="country_code=kg",
+                marks=pytest.mark.xfail(
+                    reason="BUG-002: фильтр country_code=kg возвращает элементы с кодом kz",
+                    strict=True,
+                ),
+            ),
+            pytest.param(
+                {"country_code": "kz"}, "kz", id="country_code=kz",
+                marks=pytest.mark.xfail(
+                    reason="BUG-002: фильтр country_code=kz возвращает элементы с кодом kg",
+                    strict=True,
+                ),
+            ),
             pytest.param({"country_code": "cz"}, "cz", id="country_code=cz"),
         ],
         indirect=["region_response"],

@@ -8,7 +8,7 @@ class TestRegionsQ:
     @pytest.mark.parametrize(
         "region_response",
         [
-            pytest.param({"q": "Новосибирск"}, id="смешанный регистр, слово целиком"),
+            pytest.param({"q": "Новосибирск"}, id="смешанный регистр, слово целиком", marks=pytest.mark.smoke),
             pytest.param({"q": "нов"},         id="нижний регистр, fuzzy, len=3 (валидная граница)"),
             pytest.param({"q": "НОВ"},         id="верхний регистр, fuzzy"),
             pytest.param({"q": "ново"},        id="len=4 (чуть выше границы)"),

@@ -33,7 +33,17 @@ desktop.ini
 
 # Environment variables
 .env
-.env.local
+.env.*
+!.env.example
+
+# Local credentials and private keys
+*.pem
+*.p12
+*.pfx
+*.key
+
+# Local Claude permissions
+.claude/settings.local.json
 
 # Logs
 *.log
@@ -42,9 +52,6 @@ desktop.ini
 *.db
 *.sqlite
 *.sqlite3
-
-# Claude Code — локальный allowlist команд
-.claude/settings.local.json
 
 # API config — contains endpoint URL, set manually before running
 src/config/url.py
@@ -60,3 +67,8 @@ build/
 allure-results/
 allure-report/
 tz.pdf
+
+# Confirmed API defect reports
+!bug/
+!bug/**/
+!bug/**/*.md
