@@ -26,6 +26,14 @@ py -3.14 -m venv .venv
 . .\.venv\Scripts\Activate.ps1
 ```
 
+Linux / macOS:
+
+```bash
+python3.14 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
 Создай локальный файл `src/config/url.py` с адресом тестового API:
 
 ```python
@@ -51,7 +59,7 @@ GitHub Actions запускает функциональные тесты вру
 
 - `.codex/agents/` — агенты для написания и независимого ревью API-тестов.
 - `.agents/skills/` — инструкции по тестам и оформлению подтверждённых дефектов.
-- `AGENTS.md` — правила работы, источники контракта и маршрутизация задач.
+- Правила каждого процесса хранятся рядом с соответствующим skill или агентом.
 - `NOTES.md` — снимок покрытия и бэклог улучшений.
 
 ## Структура

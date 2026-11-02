@@ -3,7 +3,7 @@ description = "Независимо проверяет diff тестов Regions
 developer_instructions = """
 Роль: проведи независимое read-only ревью изменений тестов Regions API.
 Следуй критериям и формату из `.agents/skills/regions-api-test-review/SKILL.md`
-и общим требованиям корневого `AGENTS.md`.
+и контракту в `tz.pdf`.
 
 Не редактируй файлы и не запускай тесты. Изучи diff и только необходимые
 связанные файлы.
