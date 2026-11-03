@@ -1,4 +1,4 @@
-# BUG-001 — Последняя страница пагинации переполнена дубликатами
+# BUG-001 — Пагинация возвращает дубликаты между страницами
 
 **Severity:** Major
 **Priority:** High
@@ -9,8 +9,9 @@
 
 ## Описание
 
-На последней странице выборки API возвращает **полную** страницу размером `page_size`, добирая её
-элементами с предыдущих страниц, вместо того чтобы вернуть **реальный остаток**
+При запросах разных страниц API повторяет элементы по `id`. На последней странице
+также наблюдалось переполнение: API возвращал полную страницу размером
+`page_size` с элементами предыдущих страниц вместо реального остатка
 `total − (last_page − 1) × page_size`.
 
 По ТЗ контракт пагинации стандартный: `page` — порядковый номер страницы,
@@ -77,6 +78,45 @@ GET {BASE_URL}?page=2&page_size=15
 При `page_size`, близком к `total`, остаток велик и баг не проявляется — отсюда и то,
 что он не ловился «обычным» тестом на последнюю страницу.
 
+### Case C — пересечение страниц 2 и 3 (`page_size=5`)
+
+**Дата наблюдения:** 2026-11-03.
+
+**Запросы:**
+```
+GET {BASE_URL}?page=2&page_size=5
+GET {BASE_URL}?page=3&page_size=5
+```
+
+**Expected:** множества `id` на разных страницах не пересекаются. Это следует
+из значения `page` как порядкового номера страницы; см. `tz-extracted.txt`,
+стр. 2, таблица query-параметров `page`.
+
+**Actual:** оба ответа прошли проверки HTTP-статуса `200` и непустых `items`,
+но проверка непересечения завершилась ошибкой: пересечение множеств `id` — `{26}`.
+Полные тела ответов для этого прогона не сохранены.
+
+**Evidence:** пользовательский вывод pytest от 2026-11-03 для
+`agents-test/func/test_pagination_contract.py::TestRegionsPaginationContract::test_page_number_selects_a_different_page`;
+ошибка на assertion `ids_a.isdisjoint(ids_b)`.
+
+### Case D — перекрытие соседних страниц в полном прогоне
+
+**Дата наблюдения:** 2026-11-03.
+
+В полном прогоне `pytest tests/func agents-test/func` проверка соседних страниц
+завершилась тремя ошибками на assertion непересечения ID:
+
+- `page=1`/`page=2`, `page_size=5`: пересечение `{114}`;
+- `page=1`/`page=2`, `page_size=10`: пересечение `{32}`;
+- `country_code=ru`, `page=1`/`page=2`, `page_size=5`: пересечение `{32}`.
+
+**Evidence:** вывод pytest от 2026-11-03 для
+`tests/func/test_pagination.py::TestRegionsPagination::test_pages_are_disjoint_and_total_stable`.
+В этом прогоне собрано 76 тестов: 58 passed, 12 xfailed, 6 failed.
+Отдельный авторский прогон после восстановления assertion завершился ожидаемым
+`XFAIL` по текущему регрессионному тесту; подробные тела ответов не сохранены.
+
 ## Инварианты, которые нарушены
 
 1. `len(items_on_last_page) == total − (last_page − 1) × page_size`.
@@ -99,6 +139,7 @@ GET {BASE_URL}?page=2&page_size=15
 
 ## Регрессионный автотест
 
-Поведение зафиксировано в
-`tests/func/test_pagination.py::TestRegionsPagination::test_last_page_returns_remainder`:
-тест падает на `page_size=5` и `page_size=10`, проходит на `page_size=15`.
+Поведение зафиксировано в исходном тесте
+`tests/func/test_pagination.py::TestRegionsPagination::test_last_page_returns_remainder`
+и новом тесте
+`agents-test/func/test_pagination_contract.py::TestRegionsPaginationContract::test_page_number_selects_a_different_page`.
