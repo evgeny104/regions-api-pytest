@@ -1,2 +1,18 @@
 [agents]
-max_concurrent_threads_per_session = 2
+max_concurrent_threads_per_session = 4
+
+[agents.regions-api-checklist]
+description = "Builds a contract test plan and compares it with the read-only user suite."
+config_file = "./agents/regions-api-checklist.toml"
+
+[agents.regions-test-author]
+description = "Implements checklist tests and runs requested checks only in agents-test/func."
+config_file = "./agents/regions-test-author.toml"
+
+[agents.regions-test-reviewer]
+description = "Audits checklist coverage against assertions; read-only and does not run tests."
+config_file = "./agents/regions-test-reviewer.toml"
+
+[agents.regions-api-bug-reporter]
+description = "Reports failures based only on the current agent-suite run."
+config_file = "./agents/regions-api-bug-reporter.toml"

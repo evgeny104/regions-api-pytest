@@ -1,76 +1,92 @@
-# Regions API — functional testing demo
+# Regions API pytest demo
 
-Демо-проект на Python и pytest для функционального тестирования REST API. Показывает
-работу с API-клиентом, схемами Pydantic, параметризацией, фикстурами, Allure и
-контрактными проверками.
+Демо-проект функционального тестирования REST API на Python, pytest и Pydantic. Он показывает проверяемый процесс:
+извлечь требования из контракта, связать их с тест-сценариями, написать агентскую suite, независимо проверить покрытие и
+зафиксировать результат.
 
-## Что демонстрирует проект
+## Что показывает проект
 
-- API-клиент на `requests` и модели ответов на Pydantic.
-- Функциональные тесты поиска, фильтров, пагинации, граничных и комбинированных сценариев.
-- pytest-маркеры, повторно используемые фикстуры и отчёты Allure.
-- Строгие `xfail` для подтверждённых дефектов API и отдельные отчёты с шагами воспроизведения.
-- AI-разработку: специализированные агенты для создания и ревью тестов, навыки и правила проекта.
+- Параметризованные API-тесты с pytest fixtures, клиентом `Region` и строгой Pydantic-валидацией.
+- Контрактный тест-план с атомарными ID, техниками тест-дизайна и трассировкой до assertions.
+- Четыре специализированные роли: checklist, author, read-only reviewer и bug reporter.
+- Assertion mutation-check в агентской suite: временное нарушение проверки должно уронить тест на целевом assertion,
+  затем исходный код восстанавливается.
+- Раздельную классификацию подтверждённых нарушений контракта, characterization-наблюдений и инфраструктурных ошибок.
 
-## Стек
+## Источники и границы
 
-Python 3.14 · pytest · Requests · Pydantic · Allure · GitHub Actions · Docker
+- `tz-extracted.txt` — источник требований API.
+- `tests/func/` — пользовательские тесты, read-only ориентир стиля и глубины сценариев. Агенты их не изменяют и не
+  запускают.
+- `agents-test/` — все результаты агентского цикла: чек-лист, тесты и отчёты.
+- Новые bug reports создаются только по текущим результатам `agents-test/func/`; исторические отчёты хранятся вместе в
+  `agents-test/bug/` и не являются доказательствами для новых дефектов.
+- Неоднозначные или не описанные контрактом проверки могут присутствовать как characterization, но не считаются
+  требованиями API.
 
-## Запуск
+## Быстрый запуск
 
-Создай виртуальное окружение и установи зависимости:
+Создайте окружение и установите зависимости:
 
 ```powershell
 py -3.14 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-. .\.venv\Scripts\Activate.ps1
 ```
-
-Linux / macOS:
 
 ```bash
 python3.14 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+.venv/bin/python -m pip install -r requirements.txt
 ```
 
-Создай локальный файл `src/config/url.py` с адресом тестового API:
+Укажите endpoint в локальном, некоммитируемом `src/config/url.py`:
 
 ```python
 BASE_URL = "https://host/1.0/regions"
 ```
 
-Файл конфигурации игнорируется Git. Функциональные тесты обращаются к API по сети:
+Запускайте suites отдельно, чтобы видеть их результаты независимо:
 
-```bash
-pytest
-pytest -m smoke
-pytest -m "negative and boundary"
-pytest tests/func/test_pagination.py
-pytest --alluredir=allure-results
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests/func/
+.\.venv\Scripts\python.exe -m pytest agents-test/func/
 ```
 
-Для просмотра отчёта установи Allure CLI и выполни `allure serve allure-results`.
+Обычный `pytest` запускает все директории из `testpaths` в `pyproject.toml`. Функциональные тесты обращаются к сетевому
+API. Агентский полный цикл запускается только по явному запросу; author запускает `agents-test/func/`, делает
+mutation/recovery checks и передаёт результат reviewer и bug reporter.
 
-GitHub Actions запускает функциональные тесты вручную. Добавь секрет `BASE_URL` в
-репозиторий и выбери `smoke` или `all` при запуске workflow.
+Для Allure:
 
-## AI-инструменты проекта
+```powershell
+.\.venv\Scripts\python.exe -m pytest agents-test/func/ --alluredir=allure-results
+allure serve allure-results
+```
 
-- `regions-test-author` — добавляет и меняет функциональные API-тесты; процесс описан в skill автора.
-- `regions-test-reviewer` — после изменений независимо проверяет тесты и связанные модели, только для чтения.
-- Skill баг-репортинга подключается, когда нужно оформить подтверждённое нарушение контракта.
-- `.agents/skills/` хранит подробные процессы; `.codex/agents/` — роли и ссылки на них.
-- `NOTES.md` — снимок покрытия и бэклог улучшений.
+## Агентский цикл
+
+1. `regions-api-checklist` анализирует контракт и сравнивает сценарии с пользовательской suite; меняет только
+   `agents-test/checklist/api-checklist.md`.
+2. `regions-test-author` реализует сценарии только в `agents-test/func/`, валидирует ответы общими fixtures/Pydantic и
+   при поручении запускает/mutates только агентские тесты.
+3. `regions-test-reviewer` read-only проверяет каждый применимый ID и возвращает конкретные пробелы автору.
+4. `regions-api-bug-reporter` после прогона/ревью использует только лог `agents-test/func/` и пишет только в
+   `agents-test/bug/YYYY-MM-DD/`.
+
+Подробные правила живут в `.agents/skills/`; `.codex/agents/` содержит короткие описания ролей и ссылки на skills.
 
 ## Структура
 
 ```text
 src/api/                  API-клиент
-models/Pydantic/          схемы ответов
-tests/func/               функциональные API-тесты и фикстуры
-bug/YYYY-MM-DD/           отчёты о подтверждённых дефектах
-.agents/skills/           навыки и рабочие процессы
-.codex/agents/            специализированные агенты
+models/Pydantic/          Pydantic-модели ответов
+tests/func/               пользовательская suite, read-only для агентов
+agents-test/checklist/    контрактный план и карта покрытия
+agents-test/func/         независимая агентская suite
+agents-test/bug/          все отчёты по датам; новые — только по агентским прогонам
+conftest.py               общие pytest fixtures
+.agents/skills/           подробные процедуры ролей
+.codex/agents/            описания специализированных агентов
 .github/workflows/        GitHub Actions
 ```
+
+Актуальные числа последнего агентского прогона и ограничения покрытия указаны в [NOTES.md](NOTES.md).

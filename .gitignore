@@ -67,8 +67,4 @@ build/
 allure-results/
 allure-report/
 tz.pdf
-
-# Confirmed API defect reports
-!bug/
-!bug/**/
-!bug/**/*.md
+tz-extracted.txt

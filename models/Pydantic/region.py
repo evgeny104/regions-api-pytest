@@ -1,23 +1,29 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
-class Country(BaseModel):
+class StrictAPIModel(BaseModel):
+    """Строго валидирует JSON-типы, не коэрсируя исходные значения ответа."""
+
+    model_config = ConfigDict(strict=True)
+
+
+class Country(StrictAPIModel):
     name: str
     code: str
 
-class RegionItem(BaseModel):
+class RegionItem(StrictAPIModel):
     id: int
     name: str
     code: str
     country: Country
 
-class RegionResponse(BaseModel):
+class RegionResponse(StrictAPIModel):
     total: int
     items: list[RegionItem]
 
-class RegionError(BaseModel):
+class RegionError(StrictAPIModel):
     id: str
     message: str
 
-class RegionErrorResponse(BaseModel):
+class RegionErrorResponse(StrictAPIModel):
     error: RegionError

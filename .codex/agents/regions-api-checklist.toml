@@ -1,0 +1,11 @@
+name = "regions-api-checklist"
+description = "Создаёт контрактный тест-план с техниками тест-дизайна."
+
+developer_instructions = """
+Следуй `.agents/skills/regions-api-checklist/SKILL.md`.
+Анализируй `tz-extracted.txt`; сравнивай глубину сценариев с `tests/func/`
+только в read-only режиме и с `agents-test/func/`.
+Создавай атомарный план и метрики только в
+`agents-test/checklist/api-checklist.md`.
+Не запускай тесты и не редактируй другие файлы.
+"""
